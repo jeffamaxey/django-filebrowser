@@ -62,8 +62,10 @@ class ChangeForm(forms.Form):
 
         # Initialize choices of custom action
         choices = [("", u"-----")]
-        for name, action in self.site.applicable_actions(self.fileobject):
-            choices.append((name, action.short_description))
+        choices.extend(
+            (name, action.short_description)
+            for name, action in self.site.applicable_actions(self.fileobject)
+        )
         self.fields['custom_action'].choices = choices
 
     def clean_name(self):

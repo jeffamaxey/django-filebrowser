@@ -21,7 +21,7 @@ class BaseNamerTests(TestCase):
         if not file_object:
             file_object = self.F_IMAGE
 
-        extra_options.update(VERSIONS.get(version_suffix, {}))
+        extra_options |= VERSIONS.get(version_suffix, {})
 
         return self.NAMER_CLASS(
             file_object=file_object,

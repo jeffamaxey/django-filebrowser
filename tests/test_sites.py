@@ -36,9 +36,9 @@ class BrowseViewTests(TestCase):
         shutil.copy(self.STATIC_IMG_PATH, self.FOLDER_PATH)
         self.assertEqual(site.storage.listdir(self.F_FOLDER.path), (['subfolder'], [u'testimage.jpg']))
 
-        response = self.client.get(self.url + "?dir=folder")
+        response = self.client.get(f"{self.url}?dir=folder")
         self.assertEqual(len(response.context['page'].object_list), 2)
-        response = self.client.get(self.url + "?dir=folder&type=document")
+        response = self.client.get(f"{self.url}?dir=folder&type=document")
         self.assertEqual(len(response.context['page'].object_list), 1)
 
     def test_ckeditor_params_in_search_form(self):
@@ -285,10 +285,10 @@ class DeleteViewTests(TestCase):
         Generate all versions for the uploaded file and attempt a deletion of that file.
         Finally, attempt a deletion of the tmp dir.
         """
-        versions = []
-        for version_suffix in VERSIONS:
-            versions.append(self.F_IMAGE.version_generate(version_suffix))
-
+        versions = [
+            self.F_IMAGE.version_generate(version_suffix)
+            for version_suffix in VERSIONS
+        ]
         # Request the delete view
         response = self.client.get(self.url, {'dir': self.F_IMAGE.dirname, 'filename': self.F_IMAGE.filename})
 

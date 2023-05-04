@@ -33,11 +33,7 @@ def convert_filename(value):
             v = re.sub(r'[^\w\s-]', '', v).strip()
             normalized.append(v)
 
-        if len(normalized) > 1:
-            value = '.'.join(normalized)
-        else:
-            value = normalized[0]
-
+        value = '.'.join(normalized) if len(normalized) > 1 else normalized[0]
     if CONVERT_FILENAME:
         value = value.replace(" ", "_").lower()
 
@@ -49,9 +45,7 @@ def path_strip(path, root):
         return path
     path = os.path.normcase(path)
     root = os.path.normcase(root)
-    if path.startswith(root):
-        return path[len(root):]
-    return path
+    return path[len(root):] if path.startswith(root) else path
 
 
 _default_processors = None
@@ -84,24 +78,16 @@ def scale_and_crop(im, width=None, height=None, opts='', **kwargs):
     if (x, y) == (width, height):
         return im
 
-    if 'upscale' not in opts:
-        if (x < width or not width) and (y < height or not height):
-            return im
+    if (
+        'upscale' not in opts
+        and (x < width or not width)
+        and (y < height or not height)
+    ):
+        return im
 
-    if width:
-        xr = float(width)
-    else:
-        xr = float(x * height / y)
-    if height:
-        yr = float(height)
-    else:
-        yr = float(y * width / x)
-
-    if 'crop' in opts:
-        r = max(xr / x, yr / y)
-    else:
-        r = min(xr / x, yr / y)
-
+    xr = width if width else float(x * height / y)
+    yr = height if height else float(y * width / x)
+    r = max(xr / x, yr / y) if 'crop' in opts else min(xr / x, yr / y)
     if r < 1.0 or (r > 1.0 and 'upscale' in opts):
         im = im.resize((int(math.ceil(x * r)), int(math.ceil(y * r))), resample=Image.ANTIALIAS)
 

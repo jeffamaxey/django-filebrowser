@@ -24,25 +24,22 @@ class VersionNamer(object):
             setattr(self, k, v)
 
     def get_version_name(self):
-        return self.file_object.filename_root + "_" + self.version_suffix + self.extension
+        return f"{self.file_object.filename_root}_{self.version_suffix}{self.extension}"
 
     def get_original_name(self):
         tmp = self.file_object.filename_root.split("_")
         if tmp[len(tmp) - 1] in VERSIONS:
-            return "%s%s" % (
-                self.file_object.filename_root.replace("_%s" % tmp[len(tmp) - 1], ""),
-                self.file_object.extension)
+            return f'{self.file_object.filename_root.replace(f"_{tmp[len(tmp) - 1]}", "")}{self.file_object.extension}'
 
 
 class OptionsNamer(VersionNamer):
 
     def get_version_name(self):
-        name = "{root}_{options}{extension}".format(
+        return "{root}_{options}{extension}".format(
             root=force_str(self.file_object.filename_root),
             options=self.options_as_string,
             extension=self.file_object.extension,
         )
-        return name
 
     def get_original_name(self):
         """
@@ -52,8 +49,8 @@ class OptionsNamer(VersionNamer):
         root = self.file_object.filename_root
         tmp = root.split("_")
         options_part = tmp[len(tmp) - 1]
-        name = re.sub('_%s$' % options_part, '', root)
-        return "%s%s" % (name, self.file_object.extension)
+        name = re.sub(f'_{options_part}$', '', root)
+        return f"{name}{self.file_object.extension}"
 
     @property
     def options_as_string(self):
@@ -90,9 +87,9 @@ class OptionsNamer(VersionNamer):
                 continue
             if not isinstance(v, six.string_types):
                 try:
-                    v = 'x'.join([six.text_type(v) for item in v])
+                    v = 'x'.join([six.text_type(v) for _ in v])
                 except TypeError:
                     v = six.text_type(v)
-            opts.append('%s-%s' % (k, v))
+            opts.append(f'{k}-{v}')
 
         return opts

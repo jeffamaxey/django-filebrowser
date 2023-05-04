@@ -10,11 +10,9 @@ from django.core.management.base import BaseCommand, CommandError
 from filebrowser.base import FileListing
 from filebrowser.settings import DIRECTORY, EXCLUDE, EXTENSION_LIST, VERSIONS
 
-filter_re = []
-for exp in EXCLUDE:
-    filter_re.append(re.compile(exp))
+filter_re = [re.compile(exp) for exp in EXCLUDE]
 for k, v in VERSIONS.items():
-    exp = (r'_%s(%s)') % (k, '|'.join(EXTENSION_LIST))
+    exp = f"_{k}({'|'.join(EXTENSION_LIST)})"
     filter_re.append(re.compile(exp))
 
 
@@ -93,6 +91,4 @@ class Command(BaseCommand):
         for re_prefix in filter_re:
             if re_prefix.search(item.filename):
                 filtered = True
-        if filtered:
-            return False
-        return True
+        return not filtered

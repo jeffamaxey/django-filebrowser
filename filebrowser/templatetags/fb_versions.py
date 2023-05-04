@@ -23,9 +23,7 @@ class VersionNode(Node):
             version_suffix = self.suffix.resolve(context)
             source = self.src.resolve(context)
         except VariableDoesNotExist:
-            if self.var_name:
-                return None
-            return ""
+            return None if self.var_name else ""
         if version_suffix not in VERSIONS:
             return ""  # FIXME: should this throw an error?
         if isinstance(source, FileObject):
@@ -70,7 +68,7 @@ def version(parser, token):
     """
 
     bits = token.split_contents()
-    if len(bits) != 3 and len(bits) != 5:
+    if len(bits) not in [3, 5]:
         raise TemplateSyntaxError("'version' tag takes 2 or 4 arguments")
     if len(bits) == 5 and bits[3] != 'as':
         raise TemplateSyntaxError("second argument to 'version' tag must be 'as'")
@@ -108,9 +106,13 @@ def version_setting(parser, token):
     try:
         tag, version_suffix = token.split_contents()
     except:
-        raise TemplateSyntaxError("%s tag requires 1 argument" % token.contents.split()[0])
+        raise TemplateSyntaxError(
+            f"{token.contents.split()[0]} tag requires 1 argument"
+        )
     if (version_suffix[0] == version_suffix[-1] and version_suffix[0] in ('"', "'")) and version_suffix.lower()[1:-1] not in VERSIONS:
-        raise TemplateSyntaxError("%s tag received bad version_suffix %s" % (tag, version_suffix))
+        raise TemplateSyntaxError(
+            f"{tag} tag received bad version_suffix {version_suffix}"
+        )
     return VersionSettingNode(version_suffix)
 
 register.tag(version)

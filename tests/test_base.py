@@ -217,7 +217,12 @@ class FileObjectAttributeTests(TestCase):
         # version_generate(suffix)
         """
         # new settings
-        version_list = sorted(['_test/_versions/folder/testimage_{}.jpg'.format(name) for name in VERSIONS.keys()])
+        version_list = sorted(
+            [
+                f'_test/_versions/folder/testimage_{name}.jpg'
+                for name in VERSIONS.keys()
+            ]
+        )
         admin_version_list = ['_test/_versions/folder/testimage_large.jpg']
 
         self.assertEqual(self.F_IMAGE.is_version, False)
@@ -256,7 +261,12 @@ class FileObjectAttributeTests(TestCase):
         # version_generate(suffix)
         """
 
-        version_list = sorted(['_test/_versions/folder/testimage_{}.jpg'.format(name) for name in VERSIONS.keys()])
+        version_list = sorted(
+            [
+                f'_test/_versions/folder/testimage_{name}.jpg'
+                for name in VERSIONS.keys()
+            ]
+        )
         admin_version_list = ['_test/_versions/folder/testimage_large.jpg']
 
         self.assertEqual(self.F_IMAGE.is_version, False)
@@ -297,7 +307,12 @@ class FileObjectAttributeTests(TestCase):
         """
 
         # new settings
-        version_list = sorted(['_test/_versions/folder/testimage_{}.jpg'.format(name) for name in VERSIONS.keys()])
+        version_list = sorted(
+            [
+                f'_test/_versions/folder/testimage_{name}.jpg'
+                for name in VERSIONS.keys()
+            ]
+        )
         admin_version_list = ['_test/_versions/folder/testimage_large.jpg']
 
         self.assertEqual(self.F_IMAGE.is_version, False)
@@ -395,8 +410,14 @@ class FileListingTests(TestCase):
 
         self.assertEqual(self.F_LISTING_IMAGE.listing(), [])
         self.assertEqual(list(self.F_LISTING_FOLDER.listing()), [u'folder', u'testimage.jpg'])
-        self.assertEqual(list(f.path for f in self.F_LISTING_FOLDER.files_listing_total()), [u'_test/uploads/testimage.jpg', u'_test/uploads/folder'])
-        self.assertEqual(list(f.path for f in self.F_LISTING_FOLDER.files_listing_filtered()), [u'_test/uploads/testimage.jpg', u'_test/uploads/folder'])
+        self.assertEqual(
+            [f.path for f in self.F_LISTING_FOLDER.files_listing_total()],
+            [u'_test/uploads/testimage.jpg', u'_test/uploads/folder'],
+        )
+        self.assertEqual(
+            [f.path for f in self.F_LISTING_FOLDER.files_listing_filtered()],
+            [u'_test/uploads/testimage.jpg', u'_test/uploads/folder'],
+        )
         self.assertEqual(self.F_LISTING_FOLDER.results_listing_total(), 2)
         self.assertEqual(self.F_LISTING_FOLDER.results_listing_filtered(), 2)
 
@@ -413,8 +434,14 @@ class FileListingTests(TestCase):
 
         self.assertEqual(self.F_LISTING_IMAGE.listing(), [])
         self.assertEqual(list(self.F_LISTING_FOLDER.listing()), [u'folder', u'testimage.jpg'])
-        self.assertEqual(list(f.path for f in self.F_LISTING_FOLDER.files_listing_total()), [u'_test/uploads/testimage.jpg', u'_test/uploads/folder'])
-        self.assertEqual(list(f.path for f in self.F_LISTING_FOLDER.files_listing_filtered()), [u'_test/uploads/testimage.jpg', u'_test/uploads/folder'])
+        self.assertEqual(
+            [f.path for f in self.F_LISTING_FOLDER.files_listing_total()],
+            [u'_test/uploads/testimage.jpg', u'_test/uploads/folder'],
+        )
+        self.assertEqual(
+            [f.path for f in self.F_LISTING_FOLDER.files_listing_filtered()],
+            [u'_test/uploads/testimage.jpg', u'_test/uploads/folder'],
+        )
         self.assertEqual(self.F_LISTING_FOLDER.results_listing_total(), 2)
         self.assertEqual(self.F_LISTING_FOLDER.results_listing_filtered(), 2)
 
@@ -431,8 +458,24 @@ class FileListingTests(TestCase):
 
         self.assertEqual(self.F_LISTING_IMAGE.walk(), [])
         self.assertEqual(list(self.F_LISTING_FOLDER.walk()), [u'folder/subfolder/testimage.jpg', u'folder/subfolder', u'folder', u'testimage.jpg'])
-        self.assertEqual(list(f.path for f in self.F_LISTING_FOLDER.files_walk_total()), [u'_test/uploads/testimage.jpg', u'_test/uploads/folder', u'_test/uploads/folder/subfolder', u'_test/uploads/folder/subfolder/testimage.jpg'])
-        self.assertEqual(list(f.path for f in self.F_LISTING_FOLDER.files_walk_filtered()), [u'_test/uploads/testimage.jpg', u'_test/uploads/folder', u'_test/uploads/folder/subfolder', u'_test/uploads/folder/subfolder/testimage.jpg'])
+        self.assertEqual(
+            [f.path for f in self.F_LISTING_FOLDER.files_walk_total()],
+            [
+                u'_test/uploads/testimage.jpg',
+                u'_test/uploads/folder',
+                u'_test/uploads/folder/subfolder',
+                u'_test/uploads/folder/subfolder/testimage.jpg',
+            ],
+        )
+        self.assertEqual(
+            [f.path for f in self.F_LISTING_FOLDER.files_walk_filtered()],
+            [
+                u'_test/uploads/testimage.jpg',
+                u'_test/uploads/folder',
+                u'_test/uploads/folder/subfolder',
+                u'_test/uploads/folder/subfolder/testimage.jpg',
+            ],
+        )
         self.assertEqual(self.F_LISTING_FOLDER.results_walk_total(), 4)
         self.assertEqual(self.F_LISTING_FOLDER.results_walk_filtered(), 4)
 

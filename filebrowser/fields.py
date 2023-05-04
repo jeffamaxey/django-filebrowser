@@ -26,14 +26,11 @@ class FileBrowseWidget(Input):
         self.directory = attrs.get('directory', '')
         self.extensions = attrs.get('extensions', '')
         self.format = attrs.get('format', '')
-        if attrs is not None:
-            self.attrs = attrs.copy()
-        else:
-            self.attrs = {}
+        self.attrs = attrs.copy() if attrs is not None else {}
         super(FileBrowseWidget, self).__init__(attrs)
 
     def render(self, name, value, attrs=None, renderer=None):
-        url = reverse(self.site.name + ":fb_browse")
+        url = reverse(f"{self.site.name}:fb_browse")
         if value is None:
             value = ""
         if value != "" and not isinstance(value, FileObject):
@@ -99,25 +96,22 @@ class FileBrowseField(CharField):
         return self.to_python(value)
 
     def get_prep_value(self, value):
-        if not value:
-            return value
-        return value.path
+        return value.path if value else value
 
     def value_to_string(self, obj):
-        value = self.value_from_object(obj)
-        if not value:
+        if value := self.value_from_object(obj):
+            return value if type(value) is str else value.path
+        else:
             return value
-        if type(value) is str:
-            return value
-        return value.path
 
     def formfield(self, **kwargs):
         widget_class = kwargs.get('widget', FileBrowseWidget)
-        attrs = {}
-        attrs["filebrowser_site"] = self.site
-        attrs["directory"] = self.directory
-        attrs["extensions"] = self.extensions
-        attrs["format"] = self.format
+        attrs = {
+            "filebrowser_site": self.site,
+            "directory": self.directory,
+            "extensions": self.extensions,
+            "format": self.format,
+        }
         defaults = {
             'form_class': FileBrowseFormField,
             'widget': widget_class(attrs=attrs),
@@ -148,14 +142,11 @@ class FileBrowseUploadWidget(Input):
         self.format = attrs.get('format', '')
         self.upload_to = attrs.get('upload_to', '')
         self.temp_upload_dir = attrs.get('temp_upload_dir', '')
-        if attrs is not None:
-            self.attrs = attrs.copy()
-        else:
-            self.attrs = {}
+        self.attrs = attrs.copy() if attrs is not None else {}
         super(FileBrowseUploadWidget, self).__init__(attrs)
 
     def render(self, name, value, attrs=None, renderer=None):
-        url = reverse(self.site.name + ":fb_browse")
+        url = reverse(f"{self.site.name}:fb_browse")
         if value is None:
             value = ""
         if value != "" and not isinstance(value, FileObject):
@@ -232,24 +223,21 @@ class FileBrowseUploadField(CharField):
         return FileObject(value, site=self.site)
 
     def get_db_prep_value(self, value, connection, prepared=False):
-        if not value:
-            return value
-        return value.path
+        return value.path if value else value
 
     def value_to_string(self, obj):
         value = self.value_from_object(obj)
-        if not value:
-            return value
-        return value.path
+        return value.path if value else value
 
     def formfield(self, **kwargs):
-        attrs = {}
-        attrs["site"] = self.site
-        attrs["directory"] = self.directory
-        attrs["extensions"] = self.extensions
-        attrs["format"] = self.format
-        attrs["upload_to"] = self.upload_to
-        attrs["temp_upload_dir"] = self.temp_upload_dir
+        attrs = {
+            "site": self.site,
+            "directory": self.directory,
+            "extensions": self.extensions,
+            "format": self.format,
+            "upload_to": self.upload_to,
+            "temp_upload_dir": self.temp_upload_dir,
+        }
         defaults = {
             'form_class': FileBrowseUploadFormField,
             'widget': FileBrowseUploadWidget(attrs=attrs),

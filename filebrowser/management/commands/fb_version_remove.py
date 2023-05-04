@@ -16,15 +16,13 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
 
-        media_path = ""
-
-        if len(args):
-            media_path = args[0]
-
+        media_path = args[0] if len(args) else ""
         path = os.path.join(settings.MEDIA_ROOT, media_path)
 
         if not os.path.isdir(path):
-            raise CommandError('<media_path> must be a directory in MEDIA_ROOT. "%s" is no directory.' % path)
+            raise CommandError(
+                f'<media_path> must be a directory in MEDIA_ROOT. "{path}" is no directory.'
+            )
 
         self.stdout.write("\n%s\n" % self.help)
         self.stdout.write("in this case: %s\n" % path)
@@ -34,11 +32,13 @@ class Command(BaseCommand):
         while 1:
             self.stdout.write('\nOlder versions of the FileBrowser used to prefix the filename with the version name.\n')
             self.stdout.write('Current version of the FileBrowser adds the version name as suffix.\n')
-            prefix_or_suffix = input('"p" for prefix or "s" for suffix (leave blank for "%s"): ' % default_prefix_or_suffix)
+            prefix_or_suffix = input(
+                f'"p" for prefix or "s" for suffix (leave blank for "{default_prefix_or_suffix}"): '
+            )
 
             if default_prefix_or_suffix and prefix_or_suffix == '':
                 prefix_or_suffix = default_prefix_or_suffix
-            if prefix_or_suffix != "s" and prefix_or_suffix != "p":
+            if prefix_or_suffix not in ["s", "p"]:
                 sys.stderr.write('Error: "p" and "s" are the only valid inputs.\n')
                 prefix_or_suffix = None
                 continue
@@ -48,13 +48,11 @@ class Command(BaseCommand):
         while 1:
             version_name = input('\nversion name as defined with VERSIONS: ')
 
-            if version_name == "":
-                self.stderr.write('Error: You have to enter a version name.\n')
-                version_name = None
-                continue
-            else:
+            if version_name != "":
                 break
 
+            self.stderr.write('Error: You have to enter a version name.\n')
+            version_name = None
         # get list of all matching files
         files = self.get_files(path, version_name, (prefix_or_suffix == "p"))
 
@@ -99,11 +97,7 @@ class Command(BaseCommand):
     # search_for_prefix: if true we match against the start of the filename (default is the end)
     def get_files(self, path, version_name, search_for_prefix):
         file_list = []
-        # Precompile regular expressions
-        filter_re = []
-        for exp in EXCLUDE:
-            filter_re.append(re.compile(exp))
-
+        filter_re = [re.compile(exp) for exp in EXCLUDE]
         # walkt throu the filebrowser directory
         # for all/new files (except file versions itself and excludes)
         for dirpath, dirnames, filenames in os.walk(path, followlinks=True):
@@ -120,12 +114,11 @@ class Command(BaseCommand):
                     continue
                 (filename_noext, extension) = os.path.splitext(filename)
                 # images only
-                if extension in EXTENSIONS["Image"]:
-                    # if image matches with version_name we add it to the file_list
-                    if search_for_prefix:
-                        if filename_noext.startswith(version_name + "_"):
-                            file_list.append(os.path.join(dirpath, filename))
-                    elif filename_noext.endswith("_" + version_name):
-                        file_list.append(os.path.join(dirpath, filename))
-
+                if extension in EXTENSIONS["Image"] and (
+                    search_for_prefix
+                    and filename_noext.startswith(f"{version_name}_")
+                    or not search_for_prefix
+                    and filename_noext.endswith(f"_{version_name}")
+                ):
+                    file_list.append(os.path.join(dirpath, filename))
         return file_list

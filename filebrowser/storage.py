@@ -94,7 +94,7 @@ class S3BotoStorageMixin(StorageMixin):
         dirlist = self.bucket.list(self._encode_name(name))
 
         # Check whether the iterator is empty
-        for item in dirlist:
+        for _ in dirlist:
             return True
         return False
 
@@ -104,17 +104,15 @@ class S3BotoStorageMixin(StorageMixin):
             if allow_overwrite:
                 self.delete(new_file_name)
             else:
-                raise "The destination file '%s' exists and allow_overwrite is False" % new_file_name
+                raise f"The destination file '{new_file_name}' exists and allow_overwrite is False"
 
         old_key_name = self._encode_name(self._normalize_name(self._clean_name(old_file_name)))
         new_key_name = self._encode_name(self._normalize_name(self._clean_name(new_file_name)))
 
-        k = self.bucket.copy_key(new_key_name, self.bucket.name, old_key_name)
-
-        if not k:
-            raise "Couldn't copy '%s' to '%s'" % (old_file_name, new_file_name)
-
-        self.delete(old_file_name)
+        if k := self.bucket.copy_key(new_key_name, self.bucket.name, old_key_name):
+            self.delete(old_file_name)
+        else:
+            raise f"Couldn't copy '{old_file_name}' to '{new_file_name}'"
 
     def makedirs(self, name):
         pass

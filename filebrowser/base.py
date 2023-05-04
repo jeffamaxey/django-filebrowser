@@ -94,7 +94,7 @@ class FileListing():
         "List all files for path"
         if self.is_folder:
             dirs, files = self.site.storage.listdir(self.path)
-            return (f for f in dirs + files)
+            return iter(dirs + files)
         return []
 
     def _walk(self, path, filelisting):
@@ -218,10 +218,7 @@ class FileObject():
             from filebrowser.sites import site as default_site
             site = default_site
         self.site = site
-        if platform.system() == 'Windows':
-            self.path = path.replace('\\', '/')
-        else:
-            self.path = path
+        self.path = path.replace('\\', '/') if platform.system() == 'Windows' else path
         self.head = os.path.dirname(path)
         self.filename = os.path.basename(path)
         self.filename_lower = self.filename.lower()
@@ -236,7 +233,7 @@ class FileObject():
         return self.path
 
     def __repr__(self):
-        return "<%s: %s>" % (self.__class__.__name__, self or "None")
+        return f'<{self.__class__.__name__}: {self or "None"}>'
 
     def __len__(self):
         return len(self.path)
@@ -258,9 +255,11 @@ class FileObject():
         format_type = []
         for k, v in SELECT_FORMATS.items():
             for item in v:
-                for extension in EXTENSIONS.get(item, None):
-                    if self.extension.lower() == extension.lower():
-                        format_type.append(k)
+                format_type.extend(
+                    k
+                    for extension in EXTENSIONS.get(item, None)
+                    if self.extension.lower() == extension.lower()
+                )
         return format_type
 
     # GENERAL ATTRIBUTES/PROPERTIES
@@ -296,9 +295,7 @@ class FileObject():
     @property
     def datetime(self):
         "Modified time (from site.storage) as datetime"
-        if self.date:
-            return datetime.datetime.fromtimestamp(self.date)
-        return None
+        return datetime.datetime.fromtimestamp(self.date) if self.date else None
 
     @cached_property
     def exists(self):
@@ -353,32 +350,23 @@ class FileObject():
     @property
     def width(self):
         "Image width in px"
-        if self.dimensions:
-            return self.dimensions[0]
-        return None
+        return self.dimensions[0] if self.dimensions else None
 
     @property
     def height(self):
         "Image height in px"
-        if self.dimensions:
-            return self.dimensions[1]
-        return None
+        return self.dimensions[1] if self.dimensions else None
 
     @property
     def aspectratio(self):
         "Aspect ratio (float format)"
-        if self.dimensions:
-            return float(self.width) / float(self.height)
-        return None
+        return float(self.width) / float(self.height) if self.dimensions else None
 
     @property
     def orientation(self):
         "Image orientation, either 'Landscape' or 'Portrait'"
         if self.dimensions:
-            if self.dimensions[0] >= self.dimensions[1]:
-                return "Landscape"
-            else:
-                return "Portrait"
+            return "Landscape" if self.dimensions[0] >= self.dimensions[1] else "Portrait"
         return None
 
     # FOLDER ATTRIBUTES/PROPERTIES
@@ -431,13 +419,15 @@ class FileObject():
     @property
     def original_filename(self):
         "Get the filename of an original image from a version"
-        if not self.is_version:
-            return self.filename
-        return get_namer(
-            file_object=self,
-            filename_root=self.filename_root,
-            extension=self.extension,
-        ).get_original_name()
+        return (
+            get_namer(
+                file_object=self,
+                filename_root=self.filename_root,
+                extension=self.extension,
+            ).get_original_name()
+            if self.is_version
+            else self.filename
+        )
 
     # VERSION METHODS
     # versions()
@@ -449,7 +439,7 @@ class FileObject():
     def _get_options(self, version_suffix, extra_options=None):
         options = dict(VERSIONS.get(version_suffix, {}))
         if extra_options:
-            options.update(extra_options)
+            options |= extra_options
         if 'size' in options and 'width' not in options:
             width, height = options['size']
             options['width'] = width
@@ -460,16 +450,24 @@ class FileObject():
         "List of versions (not checking if they actually exist)"
         version_list = []
         if self.filetype == "Image" and not self.is_version:
-            for version in sorted(VERSIONS):
-                version_list.append(os.path.join(self.versions_basedir, self.dirname, self.version_name(version)))
+            version_list.extend(
+                os.path.join(
+                    self.versions_basedir, self.dirname, self.version_name(version)
+                )
+                for version in sorted(VERSIONS)
+            )
         return version_list
 
     def admin_versions(self):
         "List of admin versions (not checking if they actually exist)"
         version_list = []
         if self.filetype == "Image" and not self.is_version:
-            for version in ADMIN_VERSIONS:
-                version_list.append(os.path.join(self.versions_basedir, self.dirname, self.version_name(version)))
+            version_list.extend(
+                os.path.join(
+                    self.versions_basedir, self.dirname, self.version_name(version)
+                )
+                for version in ADMIN_VERSIONS
+            )
         return version_list
 
     def version_name(self, version_suffix, extra_options=None):
